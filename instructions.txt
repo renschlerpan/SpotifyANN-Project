@@ -1,0 +1,16 @@
+CS539
+
+#get token
+curl -X POST "https://accounts.spotify.com/api/token" \ -H "Content-Type: application/x-www-form-urlencoded" \ -d "grant_type=client_credentials&client_id=4a21432c16e14ab0be1c74654d4e6134&client_secret=65af98e0e3af4a8f89789ee5f28b87fe"
+
+{"access_token":"BQADjBy4i1FoH5nqU5dqz3d5D8oYG-3FzGKfg13J2UVWH7kelXF_rz30ixPnTY_VGd90jTK-sNolRYAtE02OxYR5vDroeioLbBy-EamY2zTjYd2v5Ks","token_type":"Bearer","expires_in":3600}% 
+https://api.spotify.com/v1/search
+
+#Search for Item
+curl --request GET \
+  --url 'https://api.spotify.com/v1/search?q=Live+And+Let+Die&type=track' \
+  --header 'Authorization: Bearer BQADjBy4i1FoH5nqU5dqz3d5D8oYG-3FzGKfg13J2UVWH7kelXF_rz30ixPnTY_VGd90jTK-sNolRYAtE02OxYR5vDroeioLbBy-EamY2zTjYd2v5Ks' 
+#Get Track's Audio Features
+curl --request GET \
+  --url https://api.spotify.com/v1/audio-features/1H4idkmruFoJBg1DvUv2tY \
+  --header 'Authorization: Bearer 1POdFZRZbvb...qqillRxMr2z'
