@@ -2,10 +2,10 @@ import requests
 import pandas as pd
 import time
 
-def search_spotify(access_token):
+def search_spotify(access_token, track_name):
     url = "https://api.spotify.com/v1/search"
     params = {
-        "q": "Live And Let Die",
+        "q": track_name,
         "type": "track"
     }
     headers = {
