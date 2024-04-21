@@ -5,8 +5,8 @@ from data_process import *
 
 if __name__ == "__main__":
     # copy ur client_id and secret by creating your app
-    client_id = '676c739d504944c7a2effc42531e54ae'
-    client_secret = '8569d21a326a4813b7e10986b8d32bb5'
+    client_id = '29c900968c9544c6b8ce969b4422d31e'
+    client_secret = '28dd01f72a1c4d71b828edb0bdcf79aa'
 
     token = get_access_token(client_id, client_secret)
 
@@ -19,4 +19,4 @@ if __name__ == "__main__":
     #change your file path to the spotify_sim.csv file
     filename = "/Users/allenchien/Downloads/spotify_sim.csv"
     #modify which row to start and which row to end
-    read_csv_get_strings(filename, token, 6000, 6500)
+    read_csv_get_strings(filename, token, 18000, 1000)
