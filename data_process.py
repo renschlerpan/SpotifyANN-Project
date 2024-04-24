@@ -30,3 +30,6 @@ def read_csv_get_strings(filename, access_token = None, startrow=0, endrow=0):
     # return data
 def write_dataframe_to_csv(df, filename):
     df.to_csv(filename, index=False, header=False, mode='a')
+
+def merge_datasets():
+    pass

@@ -19,4 +19,4 @@ if __name__ == "__main__":
     #change your file path to the spotify_sim.csv file
     filename = "/Users/allenchien/Downloads/spotify_sim.csv"
     #modify which row to start and which row to end
-    read_csv_get_strings(filename, token, 18000, 1000)
+    read_csv_get_strings(filename, token, 21000, 1000)
