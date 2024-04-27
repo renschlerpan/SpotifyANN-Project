@@ -13,6 +13,8 @@ if __name__ == "__main__":
     # Preprocess the data
     data_processor.preprocess_data()
     data_processor.train_model()
+
+    data_processor.predict(data_processor.X_test[0])
     # copy ur client_id and secret by creating your app
     # client_id = '29c900968c9544c6b8ce969b4422d31e'
     # client_secret = '28dd01f72a1c4d71b828edb0bdcf79aa'
