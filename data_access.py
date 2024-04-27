@@ -37,11 +37,14 @@ def find_track_id(json_content, artist_name):
     # If no matching track is found, return None
     return None
 
+def get_genre(Artistname, access_token):
+    pass
 
 def get_audio_features(track_id, access_token, max_retries = 5):
     # Spotify API endpoint for retrieving audio features
-    url = f"https://api.spotify.com/v1/audio-features/{track_id}"
+    audio_url = f"https://api.spotify.com/v1/audio-features/{track_id}"
 
+    track_url = f"https://api.spotify.com/v1/tracks/{track_id}"
     # Header with authorization token
     headers = {
         "Authorization": f"Bearer {access_token}"
@@ -49,38 +52,39 @@ def get_audio_features(track_id, access_token, max_retries = 5):
     for retry_count in range(max_retries):
         try:
             # Sending GET request to Spotify API
-            response = requests.get(url, headers=headers)
-            response.raise_for_status()  # Raise an exception for any HTTP error
+            audio_response = requests.get(audio_url, headers=headers)
+            audio_response.raise_for_status()  # Raise an exception for any HTTP error
+
+            genre_response = requests.get(track_url, headers=headers)
+            genre_response.raise_for_status()
 
             # Parsing JSON response
-            data = response.json()
+            audio_data = audio_response.json()
+            genre_data = genre_response.json()
 
             # Check if the response is not empty
-            if data:
+            if audio_data:
                 # Extracting relevant audio features
                 audio_features = {
-                    "danceability": data["danceability"],
-                    "energy": data["energy"],
-                    "key": data["key"],
-                    "loudness": data["loudness"],
-                    "mode": data["mode"],
-                    "speechiness": data["speechiness"],
-                    "acousticness": data["acousticness"],
-                    "instrumentalness": data["instrumentalness"],
-                    "liveness": data["liveness"],
-                    "valence": data["valence"],
-                    "tempo": data["tempo"],
-                    "duration_ms": data["duration_ms"],
-                    "time_signature": data["time_signature"]
+                    "danceability": audio_data["danceability"],
+                    "energy": audio_data["energy"],
+                    "key": audio_data["key"],
+                    "loudness": audio_data["loudness"],
+                    "mode": audio_data["mode"],
+                    "speechiness": audio_data["speechiness"],
+                    "acousticness": audio_data["acousticness"],
+                    "instrumentalness": audio_data["instrumentalness"],
+                    "liveness": audio_data["liveness"],
+                    "valence": audio_data["valence"],
+                    "tempo": audio_data["tempo"],
+                    "duration_ms": audio_data["duration_ms"],
+                    "time_signature": audio_data["time_signature"]
                 }
 
                 # Converting dictionary to pandas DataFrame
                 df = pd.DataFrame(audio_features, index=[0])
-
+                print(str(genre_data))
                 return df
-            else:
-                print("Empty response received. Retrying...")
-                time.sleep(retry_delay)
 
         except requests.exceptions.HTTPError as err:
             print(f"HTTP error occurred: {err}")

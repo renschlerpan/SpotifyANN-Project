@@ -1,6 +1,9 @@
 import numpy as np
 import tensorflow as tf
+from sklearn.metrics import pairwise_distances_argmin_min
 from sklearn.neighbors import NearestNeighbors
+from sklearn.cluster import KMeans
+
 import matplotlib.pyplot as plt
 from tensorflow.keras.layers import Input, Dense
 from tensorflow.keras.models import Model
@@ -17,51 +20,73 @@ class Autoencoder(tf.keras.Model):
         # Create the full model
         self.model_full = Model(self.input_layer, self.decoder)
         optimizer = Adam(learning_rate=0.004)
-        self.model_full.compile(optimizer=optimizer, loss='mean_squared_error')
+        self.model_full.compile(optimizer=optimizer, loss='mean_squared_error', metrics=['accuracy'])
+
+    def call(self, x):
+        encoded = self.encoder(x)
+        decoded = self.decoder(encoded)
+        return decoded
 
     def build_encoder(self):
         encoder_layer1 = Dense(8, activation='tanh')(self.input_layer)
-        bottleneck_layer = Dense(4, activation='tanh', name='bottleneck_layer')(encoder_layer1)
+        encoder_layer2 = Dense(6, activation='tanh')(encoder_layer1)
+        bottleneck_layer = Dense(2, activation='tanh', name='bottleneck_layer')(encoder_layer2)
         return Model(self.input_layer, bottleneck_layer)
 
     def build_decoder(self):
         decoder_layer1 = Dense(8, activation='tanh')(self.encoder.output)
-        decoder_output = Dense(self.encoding_dim, activation='sigmoid')(decoder_layer1)
+        decoder_layer2 = Dense(6, activation='tanh')(decoder_layer1)
+        decoder_output = Dense(self.encoding_dim, activation='softmax')(decoder_layer2)
         return decoder_output
 
-    def train(self, X_train, X_test, epochs=10, batch_size=100):
+    def train(self, X_train, X_test, epochs=5, batch_size=16):
         X = self.min_max_scale(X_train)
-        y = self.min_max_scale(X_test)
-        self.model_full.fit(X_train, X_train, epochs=epochs, batch_size=batch_size,
-                            shuffle=True, validation_data=(X_test, X_test))
-
+        X_test = self.min_max_scale(X_test)
+        history = self.model_full.fit(X, X, epochs=epochs, batch_size=batch_size,
+                                      shuffle=True, validation_data=(X_test, X_test))
+        print("Training Accuracy:", history.history['accuracy'][-1])
+        print("Validation Accuracy:", history.history['val_accuracy'][-1])
 
     def extract_bottleneck(self, X_inference):
         bottleneck_output = self.model_full.get_layer('bottleneck_layer').output
         model_bottleneck = Model(inputs=self.model_full.input, outputs=bottleneck_output)
-        bottleneck_predictions = model_bottleneck.predict(X_inference)
+        bottleneck_predictions = model_bottleneck.predict(self.min_max_scale(X_inference))
         return bottleneck_predictions
 
     def cluster_bottleneck_knn(self, bottleneck_data, n_neighbors=5):
-        knn = NearestNeighbors(n_neighbors=n_neighbors)
-        knn.fit(bottleneck_data)
+        X = bottleneck_data
 
-        # Find nearest neighbors for each data point
-        _, indices = knn.kneighbors(bottleneck_data)
-        # Assign cluster labels based on nearest neighbors
-        cluster_labels = np.mean(indices, axis=1).astype(int)
+        kmeans = KMeans(n_clusters=5)
+        kmeans.fit(X)
+        prediction = self.find_nearest_values(kmeans, X[0], X)
+        print(prediction)
+        print(self.decoder(prediction[0]).numpy())
+        # y_kmeans = kmeans.predict(X)
+        # centers = kmeans.cluster_centers_
+        # plt.scatter(X[:, 0], X[:, 1], c=y_kmeans, s=50, cmap='viridis')
+        # plt.scatter(centers[:, 0], centers[:, 1], c='red', s=200, alpha=0.5)
+        # plt.xlabel('Feature 1')
+        # plt.ylabel('Feature 2')
+        # plt.title('K-means Clustering')
+        # plt.show()
 
-        return cluster_labels
+    from sklearn.metrics import pairwise_distances_argmin_min
 
-    def visualize_knn_clusters(self, bottleneck_data, cluster_labels):
-        plt.figure(figsize=(8, 6))
-        plt.scatter(bottleneck_data[:, 0], bottleneck_data[:, 1], c=cluster_labels, cmap='viridis')
-        plt.xlabel("Feature 1")
-        plt.ylabel("Feature 2")
-        plt.title("kNN Clustering")
-        plt.colorbar(label="Cluster Label")
-        plt.show()
+    def find_nearest_values(self, kmeans_model, data_point, X):
+        # Find the centroid to which the data point belongs
+        centroid_idx = kmeans_model.predict(data_point.reshape(1, -1))
 
+        # Find all data points assigned to the same centroid
+        cluster_points = X[kmeans_model.labels_ == centroid_idx]
+
+        # Calculate distances between the given data point and all points in the cluster
+        distances = pairwise_distances_argmin_min(data_point.reshape(1, -1), cluster_points)[1]
+
+        # Sort distances and select the 10 nearest values
+        nearest_indices = np.argsort(distances)[:10]
+        nearest_values = cluster_points[nearest_indices]
+
+        return nearest_values
     def min_max_scale(self, sequence):
         min_val = np.min(sequence)
         max_val = np.max(sequence)

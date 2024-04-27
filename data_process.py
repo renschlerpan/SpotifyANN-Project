@@ -19,10 +19,13 @@ def read_csv_get_strings(filename, access_token = None, startrow=0, endrow=0):
         if track_id is None:
             continue
         audio_feature = get_audio_features(track_id, access_token)
+        genre = get_genre(track_id, access_token)
+
         if audio_feature is not None:
             count += 1
             audio_feature.insert(0, 'Track_name', track_name)
-            print(audio_feature)
+            audio_feature.insert(0, 'Artist Name', artist_name)
+            # print(audio_feature)
             write_dataframe_to_csv(audio_feature, "audio_features.csv")
 
     print(count)
@@ -30,6 +33,7 @@ def read_csv_get_strings(filename, access_token = None, startrow=0, endrow=0):
     # return data
 def write_dataframe_to_csv(df, filename):
     df.to_csv(filename, index=False, header=False, mode='a')
+
 
 def merge_datasets():
     pass
